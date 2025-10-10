@@ -6,17 +6,15 @@ import logging
 import json
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-def check_success_request(url_end, params):
+def check_success_request(params):
     """
-    :param url_end: принимаем от функций search или от reverse строку = концу url для nomination
     :param headers: User-Agent одинаковый для запросов из search и reverse, можно посмотреть в Devtools, без него response_json не вернется
     :param params: у search принимаем параметр query; у reverse принмаем lon и lat
     :return: при неуспешном запросе(HTTPError,Exception)  возвращаем None, при успешном response.json()
     """
     headers = {
-        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; litvinova.irinka2015@yandex.ru) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36'}
-    url_nomination = "https://nominatim.openstreetmap.org/"
-    url = url_nomination + url_end
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 YaBrowser/25.8.0.0 Safari/537.36'}
+
     try:
         with allure.step(f"Отправка запроса к {url}, с параметрами {params}"):
             response = requests.get(url, params=params, headers=headers)
@@ -48,9 +46,8 @@ def search_geokoding(query):
     :param query: запрос считываем из файлика test_data_searche.txt
     :return: в случае успешного получения response_json возвращаем долготу и широту в формате "lon lat" , иначе "None"
     """
-    url_end = "search"
-    params = {"q": query, "format": "json"}
-    response_json = check_success_request(url_end, params)
+    params = {"q": query, "format": "json"}  # параметры запроса
+    response_json = check_success_request(params)
     if response_json:
             lon = response_json[0].get("lon")  # lon - Longitude ( долгота)
             lat = response_json[0].get("lat")  # lat - Latitude (широта)
@@ -68,9 +65,9 @@ def reverse_geokoding(lon, lat):
     :param lat: считываем из файла с помощью функции load_test_data
     :return: name , если запрос response_json был успешен, в противном случае "None"
     """
-    url_end = "reverse"
-    params = {"lon": lon, "lat": lat, "format": "json"}
-    response_json = check_success_request(url_end, params)
+
+    params = {"lon": lon, "lat": lat, "format": "json"}  # параметры запроса
+    response_json = check_success_request(params)
     if response_json:
         with allure.step("Извлечение name из json"):
             print('Success!')
@@ -90,7 +87,6 @@ def load_test_data(file_path, Flag):
     """
     # функция для считывания данных из файла и создания списка с парами значений запрос/ожидаемы результат
     test_data = []
-
     with open(file_path, 'r', encoding='utf-8') as file:
         for line in file:
             line = line.strip()
